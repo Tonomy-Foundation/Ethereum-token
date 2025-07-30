@@ -17,6 +17,7 @@ describe("TonomyToken", function () {
     const [owner, bridge, user] = await ethers.getSigners();
     const TonomyToken = await ethers.getContractFactory("TonomyToken");
     const token = await upgrades.deployProxy(TonomyToken, [], { kind: "uups" });
+    await token.waitForDeployment();
     return { token, owner, bridge, user };
   }
 

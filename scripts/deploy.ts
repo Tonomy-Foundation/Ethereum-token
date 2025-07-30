@@ -8,10 +8,11 @@ async function main() {
     initializer: "initialize",
     kind: "uups"
   });
-  await token.deployed();
+  await token.waitForDeployment();
+  const address = await token.getAddress();
 
-  console.log("TonomyToken Proxy deployed at:", token.address);
-  const implAddress = await upgrades.erc1967.getImplementationAddress(token.address);
+  console.log("TonomyToken Proxy deployed at:", address);
+  const implAddress = await upgrades.erc1967.getImplementationAddress(address);
   console.log("Implementation deployed at:", implAddress);
 }
 
