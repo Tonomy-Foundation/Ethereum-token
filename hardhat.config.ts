@@ -3,17 +3,10 @@ dotenv.config();
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import '@openzeppelin/hardhat-upgrades';
-import { ethers } from "hardhat";
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-
-const wallet = new ethers.Wallet(PRIVATE_KEY);
-if (!wallet) {
-  throw new Error("Private key is not set or invalid");
-}
-console.log("Using wallet address:", wallet.address);
 
 const config: HardhatUserConfig = {
   solidity: {

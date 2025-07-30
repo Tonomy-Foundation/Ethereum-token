@@ -9,7 +9,7 @@
     "upgrade:testnet": "hardhat run scripts/upgrade.ts --network base_testnet",
     "upgrade:mainnet": "hardhat run scripts/upgrade.ts --network base",
     "interact": "hardhat run scripts/interact.ts --network base_testnet",
-    "other": "hardhat run scripts/other.ts --network hardhat",
+    "account": "hardhat run scripts/account.ts",
     "test": "hardhat test"
   },
   "dependencies": {
