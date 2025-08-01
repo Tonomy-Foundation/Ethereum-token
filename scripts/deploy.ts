@@ -1,5 +1,6 @@
 import { ethers, upgrades, network } from "hardhat";
 import { getWallet } from "./wallet";
+import { sleep } from "./time";
 
 async function main() {
   const TonomyToken = await ethers.getContractFactory("TonomyToken");
@@ -10,7 +11,7 @@ async function main() {
     kind: "uups",
   });
   await token.waitForDeployment();
-  await new Promise(r => setTimeout(r, 5_000));
+  await sleep(5000);
 
   console.log("[Deploy] TonomyToken proxy deployed successfully.");
   const proxyAddress = await token.getAddress();

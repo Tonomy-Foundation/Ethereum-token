@@ -31,10 +31,10 @@ contract TonomyToken is Initializable, ERC20SnapshotUpgradeable, OwnableUpgradea
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
         _mint(address(this), INITIAL_SUPPLY);
+        bridge = owner();
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-
 
     function setBridge(address _bridge) external onlyOwner {
         require(_bridge != address(0), "Invalid bridge address");
