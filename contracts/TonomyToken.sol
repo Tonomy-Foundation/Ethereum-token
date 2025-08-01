@@ -12,6 +12,7 @@ contract TonomyToken is Initializable, ERC20SnapshotUpgradeable, OwnableUpgradea
     
     uint256 public constant INITIAL_SUPPLY = 100_000_000 ether;
     address public bridge;
+    address public mintTo;
 
     modifier onlyBridge() {
         require(msg.sender == bridge, "TonomyToken: caller is not the bridge");
@@ -30,8 +31,9 @@ contract TonomyToken is Initializable, ERC20SnapshotUpgradeable, OwnableUpgradea
         __Ownable_init();
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-        _mint(address(this), INITIAL_SUPPLY);
         bridge = owner();
+        mintTo = owner();
+        _mint(mintTo, INITIAL_SUPPLY);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

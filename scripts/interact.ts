@@ -28,6 +28,8 @@ async function main() {
   console.log('INITIAL_SUPPLY'.padEnd(padEnd), castQuantityToString(await token.INITIAL_SUPPLY(), decimals, symbol));
   console.log('totalSupply'.padEnd(padEnd), castQuantityToString(await token.totalSupply(), decimals, symbol));
   console.log('contractBalance'.padEnd(padEnd), castQuantityToString(await token.balanceOf(proxyAddress), decimals, symbol));
+  console.log('mintTo'.padEnd(padEnd), await token.mintTo());
+  console.log('mintToBalance'.padEnd(padEnd), castQuantityToString(await token.balanceOf(await token.mintTo()), decimals, symbol));
 
   if (process.env.ACCOUNT) {
     const account = process.env.ACCOUNT;
