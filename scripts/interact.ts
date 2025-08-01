@@ -1,21 +1,77 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import * as dotenv from "dotenv";
 dotenv.config();
 
 async function main() {
   const proxyAddress = process.env.PROXY_ADDRESS;
-  if (!proxyAddress) throw new Error("PROXY_ADDRESS not set");
+  if (!proxyAddress) throw new Error("PROXY_ADDRESS not set in .env");
 
+  const [signer] = await ethers.getSigners();
+  
   const TonomyToken = await ethers.getContractFactory("TonomyToken");
-  const token = TonomyToken.attach(proxyAddress);
+  const token = TonomyToken.attach(proxyAddress).connect(signer);
 
-  const bridgeAddr = process.env.BRIDGE_ADDRESS;
-  if (!bridgeAddr) throw new Error("BRIDGE_ADDRESS not set");
-  console.log(`Setting bridge to ${bridgeAddr}...`);
+  const padEnd = 15;
+  const decimals = await token.decimals();
+  const symbol = await token.symbol();
+  console.log('Interacting with TonomyToken at:', proxyAddress);
+  console.log('');
+  console.log('Proxy state:');
+  console.log('implementation'.padEnd(padEnd), await upgrades.erc1967.getImplementationAddress(proxyAddress));
+  console.log('');
+  console.log('Contract state:');
+  console.log('owner'.padEnd(padEnd), await token.owner());
+  console.log('bridge'.padEnd(padEnd), await token.bridge());
+  console.log('name'.padEnd(padEnd), await token.name());
+  console.log('symbol'.padEnd(padEnd), symbol);
+  console.log('decimals'.padEnd(padEnd), decimals);
+  console.log('INITIAL_SUPPLY'.padEnd(padEnd), castQuantityToString(await token.INITIAL_SUPPLY(), decimals, symbol));
+  console.log('totalSupply'.padEnd(padEnd), castQuantityToString(await token.totalSupply(), decimals, symbol));
+  console.log('contractBalance'.padEnd(padEnd), castQuantityToString(await token.balanceOf(proxyAddress), decimals, symbol));
 
-  const tx = await token.setBridge(bridgeAddr);
-  await tx.wait();
-  console.log("Bridge set on contract");
+  if (process.env.ACCOUNT) {
+    const account = process.env.ACCOUNT;
+    console.log('');
+    console.log(`Account ${account} state:`);
+    console.log('balanceOf'.padEnd(padEnd), castQuantityToString(await token.balanceOf(account), decimals, symbol));
+    
+    if (process.env.SPENDER) {
+      const spender = process.env.SPENDER;
+      const allowance = await token.allowance(account, spender);
+      console.log('allowance'.padEnd(padEnd), castQuantityToString(allowance, decimals, symbol), `from spender: ${spender}`);
+    }
+  }
+
+  if (process.env.TRANSACTION === "true") {
+    const signerAddress = await signer.getAddress();
+    const to = process.env.TO_ADDRESS || signerAddress;
+    const amount = process.env.AMOUNT || '1.0 TONO';
+    
+    const amountString = castQuantityToString(castStringToQuantity(amount, decimals, symbol), decimals, symbol);
+    console.log('');
+    console.log(`Transferring ${amountString} from ${signerAddress} to ${to}...`);
+    const tx = await token.transfer(to, castStringToQuantity(amount, decimals, symbol));
+    await tx.wait();
+    console.log(`Transfer complete. New balance of ${to}:`, castQuantityToString(await token.balanceOf(to), decimals, symbol));
+  }
+}
+
+function castQuantityToString(quantity: bigint, decimals: bigint, symbol: string): string {
+  const divisor = 10n ** decimals;
+  const quotient = quantity / divisor;
+  const remainder = quantity % divisor;
+
+  return quotient.toString() + "." + remainder.toString().padStart(Number(decimals), '0') + " " + symbol;
+}
+
+function castStringToQuantity(value: string, decimals: bigint, symbol: string): bigint {
+  const parts = value.split(" " + symbol)[0].split('.');
+  if (parts.length !== 2) throw new Error("Invalid value format");
+
+  const wholePart = BigInt(parts[0]);
+  const fractionalPart = BigInt(parts[1].padEnd(Number(decimals), '0').slice(0, Number(decimals)));
+
+  return wholePart * (10n ** decimals) + fractionalPart;
 }
 
 main().catch(err => {

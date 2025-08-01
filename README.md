@@ -31,8 +31,6 @@ Copy `.env.example` to `.env` and fill in the required values:
 
 ## Scripts
 
-Set the network using ` --network base_testnet` or ` --network base` when running commands
-
 ### Compilation
 ```bash
 yarn compile
@@ -44,16 +42,22 @@ yarn test
 ```
 
 ### Deployment
+Set the network using `--network base_testnet` or `--network base` when running commands
+
 ```bash
 yarn deploy --network base_testnet
 ```
 
 ### Upgrades
+Set the network using `--network base_testnet` or `--network base` when running commands
+
 ```bash
 yarn upgrade --network base_testnet
 ```
 
 ### Interaction
+Set the network using `--network base_testnet` or `--network base` when running commands
+
 ```bash
 yarn interact --network base_testnet
 ```
