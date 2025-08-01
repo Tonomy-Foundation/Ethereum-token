@@ -19,9 +19,8 @@ async function main() {
   console.log('Deployed by:'.padEnd(padEnd), getWallet().address);
   console.log("Proxy contract:".padEnd(padEnd), proxyAddress);
   console.log("Implementation contract:".padEnd(padEnd), await upgrades.erc1967.getImplementationAddress(proxyAddress));
-  console.log('Proxy admin:'.padEnd(padEnd), await upgrades.erc1967.getAdminAddress(proxyAddress));
-  console.log('Owner:'.padEnd(padEnd), await token.owner());
-  console.log('Bridge owner:'.padEnd(padEnd), await token.bridge());
+  console.log('Contract.owner:'.padEnd(padEnd), await token.owner());
+  console.log('Contract.bridge:'.padEnd(padEnd), await token.bridge());
 }
 
 main().catch(err => {
