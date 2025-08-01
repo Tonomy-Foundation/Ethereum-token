@@ -7,19 +7,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Enable Corepack before setting up Node
+        run: corepack enable
+
+      - name: Run test
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: |
-          corepack enable
-          yarn install --immutable
-
-      - name: Run tests
-        run: yarn run test
+          node-version: 22.3.0
+          cache: yarn
+      - run: yarn install --immutable
+      - run: yarn run test
