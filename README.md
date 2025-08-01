@@ -14,7 +14,7 @@ The Tonomy Token Base implementation is a UUPS upgradeable ERC20 token that incl
 
 **Bridge & Swap**: Users can swap between Tonomy Blockchain and Base networks through our official swap interfaces.
 
-For the complete Tonomy ecosystem contracts, see: [Tonomy-Contracts repository](https://github.com/Tonomy-Foundation/Tonomy-Contracts)
+For the complete Tonomy ecosystem contracts on the Tonomy Blockchain, see: [Tonomy-Contracts repository](https://github.com/Tonomy-Foundation/Tonomy-Contracts)
 
 ## Installation
 
@@ -31,6 +31,8 @@ Copy `.env.example` to `.env` and fill in the required values:
 
 ## Scripts
 
+Set the network using ` --network base_testnet` or ` --network base` when running commands
+
 ### Compilation
 ```bash
 yarn compile
@@ -43,29 +45,17 @@ yarn test
 
 ### Deployment
 ```bash
-# Deploy to Base testnet
-yarn deploy:testnet
-
-# Deploy to Base mainnet
-yarn deploy:mainnet
+yarn deploy --network base_testnet
 ```
 
 ### Upgrades
 ```bash
-# Upgrade on Base testnet
-yarn upgrade:testnet
-
-# Upgrade on Base mainnet
-yarn upgrade:mainnet
+yarn upgrade --network base_testnet
 ```
 
 ### Interaction
 ```bash
-# Interact with deployed contract on testnet
-yarn interact
-
-# Generate new account
-yarn account
+yarn interact --network base_testnet
 ```
 
 ## Network Configuration & Deployed Addresses

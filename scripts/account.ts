@@ -1,4 +1,5 @@
 import { ethers, network } from "hardhat";
+import { getWallet } from "./wallet";
 
 console.log('Creating random key...');
 const randomWallet = ethers.Wallet.createRandom();
@@ -10,10 +11,5 @@ console.log('Random private key is:', key);
 
 console.log('');
 console.log(`Checking ${network.name} network key...`);
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 
-const wallet = new ethers.Wallet(PRIVATE_KEY);
-if (!wallet) {
-  throw new Error("Private key is not set or invalid");
-}
-console.log("Using wallet address:", wallet.address);
+console.log("Using wallet address:", getWallet().address);
