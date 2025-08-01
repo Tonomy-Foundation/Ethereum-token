@@ -64,10 +64,10 @@ yarn interact --network base_testnet
 
 ## Network Configuration & Deployed Addresses
 
-| Network | Chain ID | RPC URL | Contract Address | Swap URL |
-|---------|----------|---------|------------------|----------|
-| **Base Mainnet** | 8453 | `https://base-mainnet.infura.io/v3/{INFURA_API_KEY}` | TODO: `0x0000000000000000000000000000000000000000` | https://swap.tonomy.io |
-| **Base Testnet** | 84532 | `https://base-sepolia.infura.io/v3/{INFURA_API_KEY}` | TODO: `0x0000000000000000000000000000000000000000` | https://swap.testnet.tonomy.io |
+| Network | Chain ID | Contract Address | Swap URL |
+|---------|---------|------------------|----------|
+| **Base Mainnet** | 8453 | TODO: `0x0000000000000000000000000000000000000000` | https://swap.tonomy.io |
+| **Base Testnet** | 84532 | [0xd985a34300AE7BAE0ba9e02173813107ADceC71D](https://sepolia.basescan.org/address/0xd985a34300AE7BAE0ba9e02173813107ADceC71D) | https://swap.testnet.tonomy.io |
 
 ## Contract Features
 
