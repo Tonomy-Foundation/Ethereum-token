@@ -179,6 +179,18 @@ describe("TonomyToken", function () {
         await expect(token.connect(user).transfer(await spender.getAddress(), 0))
           .to.not.be.reverted;
       });
+
+      it("Should allow transfers to a contract address without reverting", async function () {
+        const ownerAddress = await owner.getAddress();
+        const contractAddress = await token.getAddress();          // token proxy is a contract
+        const amount = ethers.parseEther("100");
+
+        await token.connect(bridge).bridgeMint(ownerAddress, amount);
+        await expect(
+          token.connect(owner).transfer(contractAddress, amount)
+        ).to.not.be.reverted;
+        expect(await token.balanceOf(contractAddress)).to.equal(amount);
+      });
     });
 
     describe("Approve", function () {

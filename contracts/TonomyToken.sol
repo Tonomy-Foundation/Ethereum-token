@@ -52,11 +52,7 @@ contract TonomyToken is Initializable, ERC20SnapshotUpgradeable, OwnableUpgradea
     }
 
     // ─── Internal Transfer Check ────────────────────────────────────────────────
-
-    function _beforeTokenTransfer(address from, address to, uint256 amount)
-        internal
-        override(ERC20SnapshotUpgradeable)
-    {
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override(ERC20SnapshotUpgradeable) {
         super._beforeTokenTransfer(from, to, amount);
     }
 }
