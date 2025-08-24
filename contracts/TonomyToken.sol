@@ -78,7 +78,7 @@ contract TonomyToken is
     function initialize() public initializer {
         __ERC20_init("Tonomy Token", "TONO");
         __ERC20Snapshot_init();
-        __Pausable_init();
+        __ERC20Pausable_init();
         __Ownable_init();
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
