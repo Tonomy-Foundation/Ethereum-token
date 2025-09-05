@@ -26,7 +26,7 @@ yarn install
 
 Copy `.env.example` to `.env` and fill in the required values:
 - `INFURA_API_KEY` - Your Infura API key for Base network access
-- `PRIVATE_KEY` - Private key for deployment account
+- `ETHEREUM_PRIVATE_KEY` - Private key for deployment account
 - `PROXY_ADDRESS` - Address of the deployed TonomyToken proxy contract
 
 ## Scripts
