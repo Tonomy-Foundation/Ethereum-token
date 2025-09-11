@@ -12,14 +12,15 @@ describe('TonomyToken', function () {
     let spender: Signer;
     let pool: Signer;
     let other: Signer;
+    let antiSnipingManager: Signer;
 
     async function deployTokenFixture() {
-        const [owner, bridge, user, spender, pool, other] = await ethers.getSigners();
+        const [owner, bridge, user, spender, pool, other, antiSnipingManager] = await ethers.getSigners();
         const TonomyToken = await ethers.getContractFactory('TonomyToken');
         const token = (await upgrades.deployProxy(TonomyToken, [], { kind: 'uups' })) as unknown as TonomyToken;
 
         await token.waitForDeployment();
-        return { token, owner, bridge, user, spender, pool, other };
+        return { token, owner, bridge, user, spender, pool, other, antiSnipingManager };
     }
 
     async function evmIncreaseTime(seconds: number) {
@@ -37,6 +38,7 @@ describe('TonomyToken', function () {
         spender = result.spender;
         pool = result.pool;
         other = result.other;
+        antiSnipingManager = result.antiSnipingManager;
     });
 
     // ----------------------- Deployment -----------------------
@@ -54,10 +56,354 @@ describe('TonomyToken', function () {
 
             expect(await token.owner()).to.equal(ownerAddr);
             expect(await token.bridge()).to.equal(ownerAddr);
+            expect(await token.antiSnipingManager()).to.equal(ownerAddr);
             expect(await token.balanceOf(ownerAddr)).to.equal(await token.INITIAL_SUPPLY());
             expect(await token.isPoolAddressSet()).to.equal(false);
             expect(await token.isLaunchPeriodActive()).to.equal(true);
             expect(await token.cooldownEnabled()).to.equal(true);
+        });
+    });
+
+    // ----------------------- Anti-Sniping Manager -----------------------
+    describe('Anti-Sniping Manager', function () {
+        beforeEach(async function () {
+            await token.setBridge(await bridge.getAddress());
+            await token.connect(bridge).bridgeMint(await user.getAddress(), ethers.parseEther('1000'));
+        });
+
+        describe('setAntiSnipingManager', function () {
+            it('owner can set anti-sniping manager', async function () {
+                const managerAddr = await antiSnipingManager.getAddress();
+
+                await expect(token.setAntiSnipingManager(managerAddr))
+                    .to.emit(token, 'AntiSnipingManagerSet')
+                    .withArgs(managerAddr);
+
+                expect(await token.antiSnipingManager()).to.equal(managerAddr);
+            });
+
+            it('non-owner cannot set anti-sniping manager', async function () {
+                await expect(
+                    token.connect(user).setAntiSnipingManager(await antiSnipingManager.getAddress())
+                ).to.be.revertedWith('Ownable: caller is not the owner');
+            });
+
+            it('rejects setting anti-sniping manager to zero address', async function () {
+                await expect(token.setAntiSnipingManager(ethers.ZeroAddress)).to.be.revertedWithCustomError(
+                    token,
+                    'AddressCannotBeZero'
+                );
+            });
+        });
+
+        describe('setWalletBlacklisted with onlyOwnerOrAntiSnipingManager', function () {
+            beforeEach(async function () {
+                await token.setAntiSnipingManager(await antiSnipingManager.getAddress());
+            });
+
+            it('owner can blacklist wallets', async function () {
+                const userAddr = await user.getAddress();
+
+                await expect(token.connect(owner).setWalletBlacklisted(userAddr, true))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(userAddr, true);
+
+                expect(await token.isBlacklisted(userAddr)).to.equal(true);
+            });
+
+            it('anti-sniping manager can blacklist wallets', async function () {
+                const userAddr = await user.getAddress();
+
+                await expect(token.connect(antiSnipingManager).setWalletBlacklisted(userAddr, true))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(userAddr, true);
+
+                expect(await token.isBlacklisted(userAddr)).to.equal(true);
+            });
+
+            it('anti-sniping manager can unblacklist wallets', async function () {
+                const userAddr = await user.getAddress();
+
+                // First blacklist
+                await token.connect(antiSnipingManager).setWalletBlacklisted(userAddr, true);
+                expect(await token.isBlacklisted(userAddr)).to.equal(true);
+
+                // Then unblacklist
+                await expect(token.connect(antiSnipingManager).setWalletBlacklisted(userAddr, false))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(userAddr, false);
+
+                expect(await token.isBlacklisted(userAddr)).to.equal(false);
+            });
+
+            it('unauthorized account cannot blacklist wallets', async function () {
+                await expect(
+                    token.connect(user).setWalletBlacklisted(await other.getAddress(), true)
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedAntiSnipingAction');
+            });
+
+            it('bridge cannot blacklist wallets', async function () {
+                await expect(
+                    token.connect(bridge).setWalletBlacklisted(await user.getAddress(), true)
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedAntiSnipingAction');
+            });
+        });
+
+        describe('batchBlacklistWallets with onlyOwnerOrAntiSnipingManager', function () {
+            beforeEach(async function () {
+                await token.setAntiSnipingManager(await antiSnipingManager.getAddress());
+            });
+
+            it('owner can batch blacklist wallets', async function () {
+                const userAddr = await user.getAddress();
+                const otherAddr = await other.getAddress();
+
+                await expect(token.connect(owner).batchBlacklistWallets([userAddr, otherAddr], true))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(userAddr, true)
+                    .and.to.emit(token, 'WalletBlacklisted')
+                    .withArgs(otherAddr, true);
+
+                expect(await token.isBlacklisted(userAddr)).to.equal(true);
+                expect(await token.isBlacklisted(otherAddr)).to.equal(true);
+            });
+
+            it('anti-sniping manager can batch blacklist wallets', async function () {
+                const userAddr = await user.getAddress();
+                const otherAddr = await other.getAddress();
+
+                await expect(token.connect(antiSnipingManager).batchBlacklistWallets([userAddr, otherAddr], true))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(userAddr, true)
+                    .and.to.emit(token, 'WalletBlacklisted')
+                    .withArgs(otherAddr, true);
+
+                expect(await token.isBlacklisted(userAddr)).to.equal(true);
+                expect(await token.isBlacklisted(otherAddr)).to.equal(true);
+            });
+
+            it('anti-sniping manager can batch unblacklist wallets', async function () {
+                const userAddr = await user.getAddress();
+                const otherAddr = await other.getAddress();
+
+                // First blacklist
+                await token.connect(antiSnipingManager).batchBlacklistWallets([userAddr, otherAddr], true);
+
+                // Then unblacklist
+                await expect(token.connect(antiSnipingManager).batchBlacklistWallets([userAddr, otherAddr], false))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(userAddr, false)
+                    .and.to.emit(token, 'WalletBlacklisted')
+                    .withArgs(otherAddr, false);
+
+                expect(await token.isBlacklisted(userAddr)).to.equal(false);
+                expect(await token.isBlacklisted(otherAddr)).to.equal(false);
+            });
+
+            it('unauthorized account cannot batch blacklist wallets', async function () {
+                await expect(
+                    token.connect(user).batchBlacklistWallets([await other.getAddress()], true)
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedAntiSnipingAction');
+            });
+        });
+
+        describe('resetWalletBuyAmount with onlyOwnerOrAntiSnipingManager', function () {
+            beforeEach(async function () {
+                await token.setAntiSnipingManager(await antiSnipingManager.getAddress());
+                // Setup for buy tracking
+                await token.setPoolAddress(await pool.getAddress());
+                await token.connect(bridge).bridgeMint(await owner.getAddress(), ethers.parseEther('10000'));
+                await token.connect(owner).transfer(await pool.getAddress(), ethers.parseEther('5000'));
+                await token.setTradingEnabled(true);
+
+                // Make a purchase to track buy amount
+                await token.connect(pool).transfer(await user.getAddress(), ethers.parseEther('100'));
+            });
+
+            it('owner can reset wallet buy amounts', async function () {
+                const userAddr = await user.getAddress();
+
+                expect(await token.getWalletBuyAmount(userAddr)).to.equal(ethers.parseEther('100'));
+
+                await token.connect(owner).resetWalletBuyAmount([userAddr]);
+
+                expect(await token.getWalletBuyAmount(userAddr)).to.equal(0);
+            });
+
+            it('anti-sniping manager can reset wallet buy amounts', async function () {
+                const userAddr = await user.getAddress();
+
+                expect(await token.getWalletBuyAmount(userAddr)).to.equal(ethers.parseEther('100'));
+
+                await token.connect(antiSnipingManager).resetWalletBuyAmount([userAddr]);
+
+                expect(await token.getWalletBuyAmount(userAddr)).to.equal(0);
+            });
+
+            it('anti-sniping manager can reset multiple wallet buy amounts', async function () {
+                // Make another purchase with different user
+                await token.connect(pool).transfer(await other.getAddress(), ethers.parseEther('50'));
+
+                const userAddr = await user.getAddress();
+                const otherAddr = await other.getAddress();
+
+                expect(await token.getWalletBuyAmount(userAddr)).to.equal(ethers.parseEther('100'));
+                expect(await token.getWalletBuyAmount(otherAddr)).to.equal(ethers.parseEther('50'));
+
+                await token.connect(antiSnipingManager).resetWalletBuyAmount([userAddr, otherAddr]);
+
+                expect(await token.getWalletBuyAmount(userAddr)).to.equal(0);
+                expect(await token.getWalletBuyAmount(otherAddr)).to.equal(0);
+            });
+
+            it('unauthorized account cannot reset wallet buy amounts', async function () {
+                await expect(
+                    token.connect(user).resetWalletBuyAmount([await other.getAddress()])
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedAntiSnipingAction');
+            });
+        });
+
+        describe('Rapid response scenarios', function () {
+            beforeEach(async function () {
+                await token.setAntiSnipingManager(await antiSnipingManager.getAddress());
+                await token.setPoolAddress(await pool.getAddress());
+                await token.connect(bridge).bridgeMint(await owner.getAddress(), ethers.parseEther('10000'));
+                await token.connect(owner).transfer(await pool.getAddress(), ethers.parseEther('5000'));
+                await token.setTradingEnabled(true);
+            });
+
+            it('anti-sniping manager can quickly blacklist suspicious activity', async function () {
+                const suspiciousAddr = await user.getAddress();
+
+                // Simulate rapid response to suspicious activity
+                await expect(token.connect(antiSnipingManager).setWalletBlacklisted(suspiciousAddr, true))
+                    .to.emit(token, 'WalletBlacklisted')
+                    .withArgs(suspiciousAddr, true);
+
+                // Verify transfer is blocked
+                await expect(
+                    token.connect(user).transfer(await other.getAddress(), ethers.parseEther('1'))
+                ).to.be.revertedWithCustomError(token, 'WalletIsBlacklisted');
+            });
+
+            it('anti-sniping manager can help legitimate users during launch period', async function () {
+                // Set a low buy cap for testing
+                await token.setPerWalletBuyCap(ethers.parseEther('10'));
+
+                // User makes a purchase
+                await token.connect(pool).transfer(await user.getAddress(), ethers.parseEther('8'));
+                expect(await token.getWalletBuyAmount(await user.getAddress())).to.equal(ethers.parseEther('8'));
+
+                // Anti-sniping manager can reset to help legitimate user
+                await token.connect(antiSnipingManager).resetWalletBuyAmount([await user.getAddress()]);
+                expect(await token.getWalletBuyAmount(await user.getAddress())).to.equal(0);
+
+                // Wait for cooldown to pass before next purchase
+                const cooldownTime = Number(await token.cooldownSeconds());
+
+                await evmIncreaseTime(cooldownTime + 1);
+
+                // User can now buy again up to the cap
+                await token.connect(pool).transfer(await user.getAddress(), ethers.parseEther('10'));
+                expect(await token.getWalletBuyAmount(await user.getAddress())).to.equal(ethers.parseEther('10'));
+            });
+
+            it('anti-sniping manager actions work independently of owner actions', async function () {
+                const addr1 = await user.getAddress();
+                const addr2 = await other.getAddress();
+
+                // Owner blacklists one address
+                await token.connect(owner).setWalletBlacklisted(addr1, true);
+
+                // Anti-sniping manager blacklists another
+                await token.connect(antiSnipingManager).setWalletBlacklisted(addr2, true);
+
+                // Both should be blacklisted
+                expect(await token.isBlacklisted(addr1)).to.equal(true);
+                expect(await token.isBlacklisted(addr2)).to.equal(true);
+
+                // Anti-sniping manager can unblacklist the one they blacklisted
+                await token.connect(antiSnipingManager).setWalletBlacklisted(addr2, false);
+                expect(await token.isBlacklisted(addr2)).to.equal(false);
+
+                // Owner's blacklist remains
+                expect(await token.isBlacklisted(addr1)).to.equal(true);
+            });
+        });
+
+        describe('Security boundaries', function () {
+            beforeEach(async function () {
+                await token.setAntiSnipingManager(await antiSnipingManager.getAddress());
+            });
+
+            it('anti-sniping manager cannot perform owner-only functions', async function () {
+                // Cannot change core settings
+                await expect(token.connect(antiSnipingManager).setTradingEnabled(true)).to.be.revertedWith(
+                    'Ownable: caller is not the owner'
+                );
+
+                await expect(token.connect(antiSnipingManager).setLaunchPeriodEnabled(false)).to.be.revertedWith(
+                    'Ownable: caller is not the owner'
+                );
+
+                await expect(
+                    token.connect(antiSnipingManager).setPerWalletBuyCap(ethers.parseEther('1000'))
+                ).to.be.revertedWith('Ownable: caller is not the owner');
+
+                // Cannot change critical addresses
+                await expect(
+                    token.connect(antiSnipingManager).setPoolAddress(await pool.getAddress())
+                ).to.be.revertedWith('Ownable: caller is not the owner');
+
+                await expect(
+                    token.connect(antiSnipingManager).setLpWallet(await other.getAddress())
+                ).to.be.revertedWith('Ownable: caller is not the owner');
+
+                // Cannot change their own role
+                await expect(
+                    token.connect(antiSnipingManager).setAntiSnipingManager(await user.getAddress())
+                ).to.be.revertedWith('Ownable: caller is not the owner');
+
+                // Cannot pause/unpause
+                await expect(token.connect(antiSnipingManager).pause()).to.be.revertedWith(
+                    'Ownable: caller is not the owner'
+                );
+            });
+
+            it('anti-sniping manager cannot perform bridge functions', async function () {
+                await expect(
+                    token.connect(antiSnipingManager).bridgeMint(await user.getAddress(), ethers.parseEther('100'))
+                ).to.be.revertedWith('TonomyToken: caller is not the bridge');
+
+                await expect(
+                    token.connect(antiSnipingManager).bridgeBurn(await user.getAddress(), ethers.parseEther('100'))
+                ).to.be.revertedWith('TonomyToken: caller is not the bridge');
+
+                await expect(token.connect(antiSnipingManager).setBridge(await bridge.getAddress())).to.be.revertedWith(
+                    'Ownable: caller is not the owner'
+                );
+            });
+
+            it('changing anti-sniping manager invalidates old manager permissions', async function () {
+                const oldManager = antiSnipingManager;
+                const newManagerAddr = await spender.getAddress();
+
+                // Old manager can initially blacklist
+                await expect(token.connect(oldManager).setWalletBlacklisted(await user.getAddress(), true)).to.not.be
+                    .reverted;
+
+                // Owner changes the manager
+                await token.connect(owner).setAntiSnipingManager(newManagerAddr);
+
+                // Old manager can no longer blacklist
+                await expect(
+                    token.connect(oldManager).setWalletBlacklisted(await other.getAddress(), true)
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedAntiSnipingAction');
+
+                // New manager can now blacklist
+                await expect(token.connect(spender).setWalletBlacklisted(await other.getAddress(), true)).to.not.be
+                    .reverted;
+            });
         });
     });
 

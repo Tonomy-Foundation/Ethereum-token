@@ -33,6 +33,7 @@ contract TonomyToken is
     uint256 public constant INITIAL_SUPPLY = 100_000_000 ether;
     address public bridge;
     address public mintTo;
+    address public antiSnipingManager; // EOA for rapid anti-sniping actions
 
     // --- Anti-sniping / launch control state ---
     bool public isLaunchPeriodEnabled;   // launch-period restrictions active
@@ -61,6 +62,7 @@ contract TonomyToken is
     event LpWalletSet(address wallet);
     event PoolAddressSet(address pool);
     event WalletBlacklisted(address wallet, bool status);
+    event AntiSnipingManagerSet(address manager);
 
     // --- Custom Errors (gas efficient reverts) ---
     error SellsBlocked();
@@ -69,6 +71,7 @@ contract TonomyToken is
     error WalletIsBlacklisted(address from, address to);
     error PerWalletBuyCapExceeded();
     error AddressCannotBeZero();
+    error UnauthorizedAntiSnipingAction();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -85,6 +88,7 @@ contract TonomyToken is
 
         bridge = owner();
         mintTo = owner();
+        antiSnipingManager = owner(); // default to owner
         _mint(mintTo, INITIAL_SUPPLY);
 
         // --- Launch control sensible defaults ---
@@ -106,6 +110,14 @@ contract TonomyToken is
     // --- Bridge role ---
     modifier onlyBridge() {
         require(msg.sender == bridge, "TonomyToken: caller is not the bridge");
+        _;
+    }
+
+    // --- Anti-sniping manager role ---
+    modifier onlyOwnerOrAntiSnipingManager() {
+        if (msg.sender != owner() && msg.sender != antiSnipingManager) {
+            revert UnauthorizedAntiSnipingAction();
+        }
         _;
     }
 
@@ -170,19 +182,25 @@ contract TonomyToken is
         emit PoolAddressSet(_poolAddress);
     }
 
-    function setWalletBlacklisted(address _wallet, bool _status) external onlyOwner {
+    function setAntiSnipingManager(address _antiSnipingManager) external onlyOwner {
+        if (_antiSnipingManager == address(0)) revert AddressCannotBeZero();
+        antiSnipingManager = _antiSnipingManager;
+        emit AntiSnipingManagerSet(_antiSnipingManager);
+    }
+
+    function setWalletBlacklisted(address _wallet, bool _status) external onlyOwnerOrAntiSnipingManager {
         blacklistedWallets[_wallet] = _status;
         emit WalletBlacklisted(_wallet, _status);
     }
 
-    function batchBlacklistWallets(address[] calldata _wallets, bool _status) external onlyOwner {
+    function batchBlacklistWallets(address[] calldata _wallets, bool _status) external onlyOwnerOrAntiSnipingManager {
         for (uint256 i = 0; i < _wallets.length; i++) {
             blacklistedWallets[_wallets[i]] = _status;
             emit WalletBlacklisted(_wallets[i], _status);
         }
     }
 
-    function resetWalletBuyAmount(address[] calldata _wallets) external onlyOwner {
+    function resetWalletBuyAmount(address[] calldata _wallets) external onlyOwnerOrAntiSnipingManager {
         for (uint256 i = 0; i < _wallets.length; i++) {
             walletBuyAmount[_wallets[i]] = 0;
         }
