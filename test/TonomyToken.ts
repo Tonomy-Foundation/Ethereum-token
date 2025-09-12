@@ -47,8 +47,8 @@ describe('TonomyToken', function () {
             expect(await token.name()).to.equal('Tonomy Token');
             expect(await token.symbol()).to.equal('TONO');
             expect(await token.decimals()).to.equal(18);
-            expect(await token.INITIAL_SUPPLY()).to.equal(ethers.parseEther('100000000'));
-            expect(await token.totalSupply()).to.equal(ethers.parseEther('100000000'));
+            expect(await token.INITIAL_SUPPLY()).to.equal(ethers.parseEther('3000000000'));
+            expect(await token.totalSupply()).to.equal(ethers.parseEther('3000000000'));
         });
 
         it('owner is LP & bridge at init; initial supply to owner', async function () {

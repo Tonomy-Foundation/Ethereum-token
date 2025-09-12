@@ -30,7 +30,7 @@ contract TonomyToken is
     UUPSUpgradeable
 {
     // --- Existing state ---
-    uint256 public constant INITIAL_SUPPLY = 100_000_000 ether;
+    uint256 public constant INITIAL_SUPPLY = 3_000_000_000 ether;
     address public bridge;
     address public mintTo;
     address public antiSnipingManager; // EOA for rapid anti-sniping actions
