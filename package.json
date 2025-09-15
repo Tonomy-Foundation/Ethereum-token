@@ -8,6 +8,7 @@
     "upgrade": "hardhat run scripts/upgrade.ts",
     "interact": "hardhat run scripts/interact.ts",
     "account": "hardhat run scripts/account.ts",
+    "transfer": "hardhat run scripts/transfer.ts",
     "node": "hardhat node",
     "test": "hardhat test"
   },
