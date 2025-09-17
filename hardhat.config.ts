@@ -16,6 +16,10 @@ const config: HardhatUserConfig = {
     },
     networks: {
         hardhat: {},
+        localhost: {
+            url: 'http://localhost:8545',
+            accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+        },
         base_testnet: {
             url: 'https://base-sepolia.infura.io/v3/' + INFURA_API_KEY,
             accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
