@@ -26,7 +26,7 @@ yarn install
 
 Copy `.env.example` to `.env` and fill in the required values:
 - `INFURA_API_KEY` - Your Infura API key for Base network access
-- `PRIVATE_KEY` - Private key for deployment account
+- `ETHEREUM_PRIVATE_KEY` - Private key for deployment account
 - `PROXY_ADDRESS` - Address of the deployed TonomyToken proxy contract
 
 ## Scripts
@@ -66,8 +66,8 @@ yarn interact --network base_testnet
 
 | Network | Chain ID | Contract Address | Swap URL |
 |---------|---------|------------------|----------|
-| **Base Mainnet** | 8453 | TODO: `0x0000000000000000000000000000000000000000` | https://swap.tonomy.io |
-| **Base Testnet** | 84532 | [0xd985a34300AE7BAE0ba9e02173813107ADceC71D](https://sepolia.basescan.org/address/0xd985a34300AE7BAE0ba9e02173813107ADceC71D) | https://swap.testnet.tonomy.io |
+| **Base Mainnet** | 8453 | TODO: `0x0000000000000000000000000000000000000000` | https://app.tonomy.io/bankless |
+| **Base Testnet** | 84532 | [0x791f703116a5197D3c0dD41855bC0e715b6A2Df9](https://sepolia.basescan.org/address/0x791f703116a5197D3c0dD41855bC0e715b6A2Df9) | https://app.testnet.tonomy.io/bankless |
 
 ## Contract Features
 
@@ -77,7 +77,6 @@ yarn interact --network base_testnet
 - **Upgradeable**: Yes (UUPS pattern)
 - **Bridge Support**: Mint/burn functionality for authorized bridge
 
-
 ## TODO
-- Update the token supply and name
+
 - Make a withdrawal whitelist for owner (use Coinbase Prime account)
