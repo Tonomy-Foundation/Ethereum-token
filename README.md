@@ -42,24 +42,24 @@ yarn test
 ```
 
 ### Deployment
-Set the network using `--network base_testnet` or `--network base` when running commands
+Set the network using `--network base-sepolia` or `--network base` when running commands
 
 ```bash
-yarn deploy --network base_testnet
+yarn deploy --network base-sepolia
 ```
 
 ### Upgrades
-Set the network using `--network base_testnet` or `--network base` when running commands
+Set the network using `--network base-sepolia` or `--network base` when running commands
 
 ```bash
-yarn upgrade --network base_testnet
+yarn upgrade --network base-sepolia
 ```
 
 ### Interaction
-Set the network using `--network base_testnet` or `--network base` when running commands
+Set the network using `--network base-sepolia` or `--network base` when running commands
 
 ```bash
-yarn interact --network base_testnet
+yarn interact --network base-sepolia
 ```
 
 ## Network Configuration & Deployed Addresses
