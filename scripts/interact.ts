@@ -10,8 +10,7 @@ async function main() {
 
     const [signer] = await ethers.getSigners();
 
-    const TonomyToken = await ethers.getContractFactory('TonomyToken');
-    const token = TonomyToken.attach(proxyAddress).connect(signer);
+    const token = await ethers.getContractAt('TonomyToken', proxyAddress, signer);
 
     const padEnd = 15;
     const decimals = await token.decimals();
