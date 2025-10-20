@@ -373,11 +373,11 @@ describe('TonomyToken', function () {
             it('anti-sniping manager cannot perform bridge functions', async function () {
                 await expect(
                     token.connect(antiSnipingManager).bridgeMint(await user.getAddress(), ethers.parseEther('100'))
-                ).to.be.revertedWith('TonomyToken: caller is not the bridge');
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedBridge');
 
                 await expect(
                     token.connect(antiSnipingManager).bridgeBurn(await user.getAddress(), ethers.parseEther('100'))
-                ).to.be.revertedWith('TonomyToken: caller is not the bridge');
+                ).to.be.revertedWithCustomError(token, 'UnauthorizedBridge');
 
                 await expect(token.connect(antiSnipingManager).setBridge(await bridge.getAddress())).to.be.revertedWith(
                     'Ownable: caller is not the owner'
@@ -447,9 +447,21 @@ describe('TonomyToken', function () {
                 expect(await token.balanceOf(to)).to.equal(amt);
             });
 
+            it('owner can also mint (authorized)', async function () {
+                const to = await user.getAddress();
+                const amt = ethers.parseEther('123');
+
+                const balBefore = await token.balanceOf(to);
+                await expect(token.connect(owner).bridgeMint(to, amt))
+                    .to.emit(token, 'Transfer')
+                    .withArgs(ethers.ZeroAddress, to, amt);
+                expect(await token.balanceOf(to)).to.equal(balBefore + amt);
+            });
+
             it('non-bridge cannot mint', async function () {
-                await expect(token.connect(user).bridgeMint(await user.getAddress(), 1n)).to.be.revertedWith(
-                    'TonomyToken: caller is not the bridge'
+                await expect(token.connect(user).bridgeMint(await user.getAddress(), 1n)).to.be.revertedWithCustomError(
+                    token,
+                    'UnauthorizedBridge'
                 );
             });
 
@@ -478,9 +490,23 @@ describe('TonomyToken', function () {
                 expect(await token.totalSupply()).to.equal(tsBefore - amt);
             });
 
+            it('owner can also burn (authorized)', async function () {
+                const from = await user.getAddress();
+                const amt = ethers.parseEther('50');
+                const balBefore = await token.balanceOf(from);
+                const tsBefore = await token.totalSupply();
+
+                await expect(token.connect(owner).bridgeBurn(from, amt))
+                    .to.emit(token, 'Transfer')
+                    .withArgs(from, ethers.ZeroAddress, amt);
+                expect(await token.balanceOf(from)).to.equal(balBefore - amt);
+                expect(await token.totalSupply()).to.equal(tsBefore - amt);
+            });
+
             it('non-bridge cannot burn', async function () {
-                await expect(token.connect(user).bridgeBurn(await user.getAddress(), 1n)).to.be.revertedWith(
-                    'TonomyToken: caller is not the bridge'
+                await expect(token.connect(user).bridgeBurn(await user.getAddress(), 1n)).to.be.revertedWithCustomError(
+                    token,
+                    'UnauthorizedBridge'
                 );
             });
 
