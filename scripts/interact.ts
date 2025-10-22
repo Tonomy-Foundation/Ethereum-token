@@ -25,11 +25,16 @@ async function main() {
     );
     console.log('Implementation'.padEnd(padEnd), await upgrades.erc1967.getImplementationAddress(proxyAddress));
     console.log('');
-    console.log('Contract state:');
+    console.log('Contract addresses:');
     console.log('owner'.padEnd(padEnd), await token.owner());
     console.log('bridge'.padEnd(padEnd), await token.bridge());
     console.log('antiSnipingManager'.padEnd(padEnd), await token.antiSnipingManager());
     console.log('mintTo'.padEnd(padEnd), await token.mintTo());
+    console.log('lpWallet'.padEnd(padEnd), await token.lpWallet());
+    console.log('poolAddress'.padEnd(padEnd), await token.poolAddress());
+    console.log('paused'.padEnd(padEnd), await token.paused());
+    console.log('');
+    console.log('Token info:');
     console.log('name'.padEnd(padEnd), await token.name());
     console.log('symbol'.padEnd(padEnd), symbol);
     console.log('decimals'.padEnd(padEnd), decimals);
@@ -39,17 +44,18 @@ async function main() {
     console.log('');
     console.log('Balances:');
     console.log(
-        'contractBalance'.padEnd(padEnd),
+        'contract'.padEnd(padEnd),
         castQuantityToString(await token.balanceOf(proxyAddress), decimals, symbol)
     );
     console.log(
-        'mintToBalance'.padEnd(padEnd),
+        'mintTo'.padEnd(padEnd),
         castQuantityToString(await token.balanceOf(await token.mintTo()), decimals, symbol)
     );
     console.log(
-        'ownerBalance'.padEnd(padEnd),
+        'owner'.padEnd(padEnd),
         castQuantityToString(await token.balanceOf(await token.owner()), decimals, symbol)
     );
+    console.log('lpWallet'.padEnd(padEnd), castQuantityToString(await token.balanceOf(await token.lpWallet()), decimals, symbol));
 
     if (process.env.ACCOUNT) {
         const account = process.env.ACCOUNT;
