@@ -9,6 +9,7 @@
     "interact": "hardhat run scripts/interact.ts",
     "account": "hardhat run scripts/account.ts",
     "transfer": "hardhat run scripts/transfer.ts",
+    "bridge": "hardhat run scripts/bridge.ts",
     "node": "hardhat node",
     "test": "hardhat test"
   },
