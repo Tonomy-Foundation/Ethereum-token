@@ -1,4 +1,4 @@
-import { ethers, upgrades } from 'hardhat';
+import { ethers, upgrades, network } from 'hardhat';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,32 +12,50 @@ async function main() {
 
     const token = await ethers.getContractAt('TonomyToken', proxyAddress, signer);
 
-    const padEnd = 15;
+    const padEnd = 18;
     const decimals = await token.decimals();
     const symbol = await token.symbol();
 
-    console.log('Interacting with TonomyToken at:', proxyAddress);
+    console.log('Contract info:');
+    console.log('Network'.padEnd(padEnd), network.name);
+    console.log(
+        'Proxy contract'.padEnd(padEnd),
+        proxyAddress,
+        '(this is the token contract address we tell others about)'
+    );
+    console.log('Implementation'.padEnd(padEnd), await upgrades.erc1967.getImplementationAddress(proxyAddress));
     console.log('');
-    console.log('Proxy state:');
-    console.log('implementation'.padEnd(padEnd), await upgrades.erc1967.getImplementationAddress(proxyAddress));
-    console.log('');
-    console.log('Contract state:');
+    console.log('Contract addresses:');
     console.log('owner'.padEnd(padEnd), await token.owner());
     console.log('bridge'.padEnd(padEnd), await token.bridge());
+    console.log('antiSnipingManager'.padEnd(padEnd), await token.antiSnipingManager());
+    console.log('mintTo'.padEnd(padEnd), await token.mintTo());
+    console.log('lpWallet'.padEnd(padEnd), await token.lpWallet());
+    console.log('poolAddress'.padEnd(padEnd), await token.poolAddress());
+    console.log('paused'.padEnd(padEnd), await token.paused());
+    console.log('');
+    console.log('Token info:');
     console.log('name'.padEnd(padEnd), await token.name());
     console.log('symbol'.padEnd(padEnd), symbol);
     console.log('decimals'.padEnd(padEnd), decimals);
     console.log('INITIAL_SUPPLY'.padEnd(padEnd), castQuantityToString(await token.INITIAL_SUPPLY(), decimals, symbol));
     console.log('totalSupply'.padEnd(padEnd), castQuantityToString(await token.totalSupply(), decimals, symbol));
+
+    console.log('');
+    console.log('Balances:');
     console.log(
-        'contractBalance'.padEnd(padEnd),
+        'contract'.padEnd(padEnd),
         castQuantityToString(await token.balanceOf(proxyAddress), decimals, symbol)
     );
-    console.log('mintTo'.padEnd(padEnd), await token.mintTo());
     console.log(
-        'mintToBalance'.padEnd(padEnd),
+        'mintTo'.padEnd(padEnd),
         castQuantityToString(await token.balanceOf(await token.mintTo()), decimals, symbol)
     );
+    console.log(
+        'owner'.padEnd(padEnd),
+        castQuantityToString(await token.balanceOf(await token.owner()), decimals, symbol)
+    );
+    console.log('lpWallet'.padEnd(padEnd), castQuantityToString(await token.balanceOf(await token.lpWallet()), decimals, symbol));
 
     if (process.env.ACCOUNT) {
         const account = process.env.ACCOUNT;

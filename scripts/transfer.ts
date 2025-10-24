@@ -2,9 +2,11 @@ import { ethers, network } from 'hardhat';
 import { sleep } from './time';
 
 // TODO: change addresses as needed
-const newOwnerAddress = '0x31692F8De49120C5204A8Db08a299022eE618a17';
+const newOwnerAddress = '0x796E8629750b112ae66cBEa3F43Ca0fBB63662Ac';
 const newAntiSniperManagerAddress = newOwnerAddress;
 const newBridgeAddress = newOwnerAddress;
+const newLpWalletAddress = newOwnerAddress;
+const newPoolAddress = '0x1dcdD8703dE9640a60EC57923f8cdf66c976F291'; // get from Aerodrome or other DEX after creating pool
 
 async function main() {
     const proxyAddress = process.env.PROXY_ADDRESS;
@@ -17,13 +19,19 @@ async function main() {
     const supplyString = whole.toLocaleString('en-US', {});
 
     console.log(`[Transfer] Transferring ownership of TonomyToken ${proxyAddress} on network ${network.name}:`);
-    console.log(`[Transfer] 1. transferring supply of ${supplyString} TONO to ${newOwnerAddress}...`);
-    await token.transfer(newOwnerAddress, supply);
+    console.log(`[Transfer] 1. transferring supply of ${supplyString} TONO to ${newLpWalletAddress}...`);
+    await token.transfer(newLpWalletAddress, supply);
     console.log(`[Transfer] 2. setting anti-sniping manager to ${newAntiSniperManagerAddress}...`);
     await token.setAntiSnipingManager(newAntiSniperManagerAddress);
     console.log(`[Transfer] 3. setting bridge to ${newBridgeAddress}...`);
     await token.setBridge(newBridgeAddress);
-    console.log(`[Transfer] 4. setting owner to ${newOwnerAddress}...`);
+    console.log(`[Transfer] 4. setting lp wallet to ${newLpWalletAddress}...`);
+    await token.setLpWallet(newLpWalletAddress);
+    console.log(`[Transfer] 5. setting pool address to ${newPoolAddress}...`);
+    await token.setPoolAddress(newPoolAddress);
+    console.log(`[Pause] 6. pausing the contract...`);
+    await token.pause();
+    console.log(`[Transfer] 7. setting owner to ${newOwnerAddress}...`);
     await token.transferOwnership(newOwnerAddress);
 
     await sleep(2000);

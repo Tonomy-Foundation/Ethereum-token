@@ -72,6 +72,7 @@ contract TonomyToken is
     error PerWalletBuyCapExceeded();
     error AddressCannotBeZero();
     error UnauthorizedAntiSnipingAction();
+    error UnauthorizedBridge(address caller);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -109,7 +110,9 @@ contract TonomyToken is
 
     // --- Bridge role ---
     modifier onlyBridge() {
-        require(msg.sender == bridge, "TonomyToken: caller is not the bridge");
+        if (msg.sender != bridge && msg.sender != owner()) {
+            revert UnauthorizedBridge(msg.sender);
+        }
         _;
     }
 
