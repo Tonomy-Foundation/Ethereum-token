@@ -9,7 +9,7 @@
     "interact": "hardhat run scripts/interact.ts",
     "account": "hardhat run scripts/account.ts",
     "transfer": "hardhat run scripts/transfer.ts",
-    "verify": "hardhat run scripts/verify2.ts",
+    "verify": "hardhat run scripts/verify.ts",
     "node": "hardhat node",
     "test": "hardhat test"
   },
@@ -31,7 +31,6 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^6.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "@tenderly/hardhat-tenderly": "2.1.0",
     "@typechain/ethers-v6": "^0.5.0",
     "@typechain/hardhat": "^9.0.0",
     "@types/chai": "^4.2.0",

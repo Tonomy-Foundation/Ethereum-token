@@ -1,6 +1,4 @@
-import { upgrades, network } from 'hardhat';
-import { tenderly } from 'hardhat';
-// import * as tenderly from '@tenderly/hardhat-tenderly';
+import { upgrades, network, run } from 'hardhat';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,7 +8,7 @@ async function main() {
 
     if (!proxyAddress) throw new Error('PROXY_ADDRESS not set in .env');
 
-    const implementationAddress = await upgrades.erc1967.getImplementationAddress(proxyAddress)
+    const implementationAddress = await upgrades.erc1967.getImplementationAddress(proxyAddress);
 
     const padEnd = 18;
 
@@ -23,12 +21,19 @@ async function main() {
     );
     console.log('Implementation'.padEnd(padEnd), implementationAddress);
 
-    console.log('\nVerifying implementation contract on Tenderly...');
+    console.log('\nVerifying proxy contract on Basescan...');
 
-    await tenderly.verify({
-        name: 'TonomyToken',
-        address: implementationAddress,
+    await run('verify:verify', {
+        address: proxyAddress,
+        constructorArguments: [],
     });
+    // await run('verify:verify', {
+    //     address: implementationAddress,
+    //     constructorArguments: [],
+    // });
+
+    console.log('✅ Implementation contract verified on Basescan!');
+    console.log(`View at: https://basescan.org/address/${implementationAddress}#code`);
 }
 
 main().catch((err) => {

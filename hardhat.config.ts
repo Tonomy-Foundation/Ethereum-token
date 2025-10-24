@@ -1,6 +1,4 @@
 import * as dotenv from 'dotenv';
-// import * as tenderly from '@tenderly/hardhat-tenderly';
-// tenderly.setup({ automaticVerifications: false });
 
 dotenv.config();
 import { HardhatUserConfig } from 'hardhat/config';
