@@ -26,7 +26,7 @@ yarn install
 
 Copy `.env.example` to `.env` and fill in the required values:
 - `INFURA_API_KEY` - Your Infura API key for Base network access
-- `PRIVATE_KEY` - Private key for deployment account
+- `ETHEREUM_PRIVATE_KEY` - Private key for deployment account
 - `PROXY_ADDRESS` - Address of the deployed TonomyToken proxy contract
 
 ## Scripts
@@ -42,32 +42,32 @@ yarn test
 ```
 
 ### Deployment
-Set the network using `--network base_testnet` or `--network base` when running commands
+Set the network using `--network base-sepolia` or `--network base` when running commands
 
 ```bash
-yarn deploy --network base_testnet
+yarn deploy --network base-sepolia
 ```
 
 ### Upgrades
-Set the network using `--network base_testnet` or `--network base` when running commands
+Set the network using `--network base-sepolia` or `--network base` when running commands
 
 ```bash
-yarn upgrade --network base_testnet
+yarn upgrade --network base-sepolia
 ```
 
 ### Interaction
-Set the network using `--network base_testnet` or `--network base` when running commands
+Set the network using `--network base-sepolia` or `--network base` when running commands
 
 ```bash
-yarn interact --network base_testnet
+yarn interact --network base-sepolia
 ```
 
 ## Network Configuration & Deployed Addresses
 
 | Network | Chain ID | Contract Address | Swap URL |
 |---------|---------|------------------|----------|
-| **Base Mainnet** | 8453 | TODO: `0x0000000000000000000000000000000000000000` | https://swap.tonomy.io |
-| **Base Testnet** | 84532 | [0xd985a34300AE7BAE0ba9e02173813107ADceC71D](https://sepolia.basescan.org/address/0xd985a34300AE7BAE0ba9e02173813107ADceC71D) | https://swap.testnet.tonomy.io |
+| **Base Mainnet** | 8453 | TODO: `0x0000000000000000000000000000000000000000` | https://app.tonomy.io/bankless |
+| **Base Testnet** | 84532 | [0x791f703116a5197D3c0dD41855bC0e715b6A2Df9](https://sepolia.basescan.org/address/0x791f703116a5197D3c0dD41855bC0e715b6A2Df9) | https://app.testnet.tonomy.io/bankless |
 
 ## Contract Features
 
@@ -77,7 +77,6 @@ yarn interact --network base_testnet
 - **Upgradeable**: Yes (UUPS pattern)
 - **Bridge Support**: Mint/burn functionality for authorized bridge
 
-
 ## TODO
-- Update the token supply and name
+
 - Make a withdrawal whitelist for owner (use Coinbase Prime account)
