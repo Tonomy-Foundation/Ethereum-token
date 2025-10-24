@@ -27,10 +27,6 @@ async function main() {
         address: proxyAddress,
         constructorArguments: [],
     });
-    // await run('verify:verify', {
-    //     address: implementationAddress,
-    //     constructorArguments: [],
-    // });
 
     console.log('✅ Implementation contract verified on Basescan!');
     console.log(`View at: https://basescan.org/address/${implementationAddress}#code`);
